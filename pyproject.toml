@@ -28,7 +28,7 @@ classifiers = [
 ]
 
 [project.scripts]
-vlc-mcp-server = "vlc_mcp_player.server:main"
+vlc-mcp-server = "vlc_mcp_player.main:main"
 
 [project.urls]
 "Homepage" = "https://github.com/piebro/vlc-mcp-server"
