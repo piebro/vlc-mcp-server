@@ -52,7 +52,7 @@ or clone the repo and use `uv` with a directory:
         "--directory",
         "path/to/root/dir/",
         "run",
-        "vlc_mcp_player/server.py"
+        "vlc_mcp_player/main.py"
     ],
     "env": {
         "the same as above"
