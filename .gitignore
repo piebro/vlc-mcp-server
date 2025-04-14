@@ -1,0 +1,3 @@
+*.egg-info
+vlc_mcp_player/_version.py
+__pycache__

@@ -1,0 +1,60 @@
+[build-system]
+requires = ["setuptools>=61.0", "setuptools_scm[toml]>=6.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vlc-mcp-server"
+dynamic = ["version"]
+description = "An MCP (Model Contex Protocol) Server to play and control movies using VLC."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "ruff",
+    "anthropic",
+    "mcp",
+    "requests",
+    "python-dotenv"
+]
+authors = [
+    {name = "Piet Brömmel", email = "piet.broemmel@gmail.com"}
+]
+keywords = ["mcp", "server", "vlc"]
+license = "MIT"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+]
+
+[project.scripts]
+vlc-mcp-server = "vlc_mcp_player.server:main"
+
+[project.urls]
+"Homepage" = "https://github.com/piebro/vlc-mcp-server"
+"Bug Tracker" = "https://github.com/piebro/vlc-mcp-server/issues"
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+select = [
+    "F",        # Pyflakes
+    "UP",       # pyupgrade
+    "B018",     # Found useless expression.
+    "I",        # isort
+    "RUF",      # ruff
+]
+ignore = [
+  "E501", # line too long - will be fixed in format
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.setuptools_scm]
+# This will write the version to _version.py, used during packaging and at runtime
+write_to = "vlc_mcp_player/_version.py"
+version_scheme = "post-release"
+local_scheme = "node-and-date"
