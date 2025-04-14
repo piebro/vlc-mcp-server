@@ -17,6 +17,8 @@ vlc --extraintf=http --http-host=localhost --http-port=8080 --http-password=your
 
 You also need to install mediainfo to get the subtitles:
 
+*Note: I don't know if this library is available on Mac and Windows. If you want to use it there, you can might need to disable using subtitles or find an alternative.*
+
 ```bash
 sudo apt-get install mediainfo
 ```
