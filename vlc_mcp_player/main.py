@@ -231,8 +231,10 @@ def show_video(video_title: str, subtitle_language_code: str = "") -> str:
     else:
         return f"Failed to start VLC playback. {error_message}"
 
+
 def main():
     app.run()
+
 
 if __name__ == "__main__":
     main()
