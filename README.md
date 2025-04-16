@@ -1,64 +1,68 @@
 # VLC MCP Server
 
 An MCP (Model Contex Protocol) Server to play and control movies using VLC.
-I use this MCP server together with my [signal-mcp-client](https://github.com/piebro/signal-mcp-client) on a Raspberry PI connected to my beamer.
-This way I can save video to a folder on my PI and I can send a signal message to play a movie.
+I use this MCP server together with my [signal-mcp-client](https://github.com/piebro/signal-mcp-client) on an old laptop connected to my beamer.
+This way I can play a movie from my laptop by sending a signal message.
 
 The Anthropic API key is used to use claude-haiku to summarize all existing videos in your video folder.
 
 ## Usage
 
-The server uses the VLC http interface to play and control movies.
-Install VLC and start the http server with the following command:
+This installation is for Linux systems running Ubuntu or a similar Debian-based system like Raspberry Pi OS.
+With a few modifications it should also work on other systems.
+Feel free to create a pull request if you get it working on another system.
 
-```bash
-vlc --extraintf=http --http-host=localhost --http-port=8080 --http-password=your_password
-```
+1. Install VLC, mediainfo and uv.
+    ```bash
+    sudo apt-get install vlc mediainfo
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+    ```
 
-You also need to install mediainfo to get the subtitles:
-
-*Note: I don't know if this library is available on Mac and Windows. If you want to use it there, you can might need to disable using subtitles or find an alternative.*
-
-```bash
-sudo apt-get install mediainfo
-```
-
-Then install [uv](https://docs.astral.sh/uv/) and add the server to an MCP config using `uvx`:
-
-```json
-{
-    "name": "vlc-mcp-server",
-    "command": "uvx",
-    "args": [
-        "vlc-mcp-server"
-    ],
-    "env": {
-        "ANTHROPIC_API_KEY": "your-key",
-        "ROOT_VIDEO_FOLDER": "path/to/your/video/folder",
-        "VLC_HTTP_HOST": "localhost",
-        "VLC_HTTP_PORT": "8080",
-        "VLC_HTTP_PASSWORD": "your_password"
+2. Start the VLC http server:
+    ```bash
+    export DISPLAY=:0 # needed when running it remotely on a server
+    vlc --extraintf=http --http-host=localhost --http-port=8081 --http-password=your_password
+    ```
+3. Add the server to the MCP config file of your client.
+    ```json
+    {
+        "name": "vlc-mcp-server",
+        "command": "uvx",
+        "args": [
+            "vlc-mcp-server"
+        ],
+        "env": {
+            "ANTHROPIC_API_KEY": "your-key",
+            "ROOT_VIDEO_FOLDER": "path/to/your/video/folder",
+            "VLC_HTTP_HOST": "localhost",
+            "VLC_HTTP_PORT": "8081",
+            "VLC_HTTP_PASSWORD": "your_password"
+        }
     }
-}
-```
+    ```
 
-or clone the repo and use `uv` with a directory:
+    or clone the repo and use `uv` with a directory:
 
-```json
-{
-    "name": "vlc-mcp-server",
-    "command": "uv",
-    "args": [
-        "--directory",
-        "path/to/root/dir/",
-        "run",
-        "vlc_mcp_player/main.py"
-    ],
-    "env": {
-        "the same as above"
+    ```json
+    {
+        "name": "vlc-mcp-server",
+        "command": "uv",
+        "args": [
+            "--directory",
+            "path/to/root/dir/",
+            "run",
+            "vlc_mcp_player/main.py"
+        ],
+        "env": {
+            "the same as above"
+        }
     }
-}
-```
+    ```
+
+## Contributing
+
+Contributions to this project are welcome. Feel free to report bugs, suggest ideas, or create merge requests.
+
 
 ## Development
 
@@ -104,6 +108,59 @@ To release a new version of the package to PyPI:
    ```
 
 The GitHub Actions workflow will automatically build and publish the package to PyPI when a new tag is pushed. The version number will be derived directly from the Git tag.
+
+## Running as a Systemd Service
+
+To ensure the VLC HTTP interface runs automatically on boot and restarts if it fails (on Linux systems), you can set it up as a systemd user service.
+User services run under your specific user account.
+
+This setup assumes that you have completed the setup steps.
+
+1. Enable User Lingering to keep your user session active after logging out.
+    ```bash
+    sudo loginctl enable-linger $USER
+    ```
+
+2. Create Systemd Service Directory
+    ```bash
+    mkdir -p /home/$USER/.config/systemd/user/
+    ```
+3. Create Service File for VLC HTTP Server.
+Make sure vlc is installed using apt and not using snap or change the path to the vlc binary.
+    ```bash
+    cat << EOF > "/home/$USER/.config/systemd/user/vlc-http.service"
+    [Unit]
+    Description=VLC Media Player with HTTP Interface
+    After=network.target sound.target
+
+    [Service]
+    Restart=on-failure
+    RestartSec=30
+    SyslogIdentifier=vlc-http
+    Environment="DISPLAY=:0"
+
+    ExecStart=/usr/bin/vlc --extraintf=http --http-host=localhost --http-port=8081 --http-password=your_password
+
+    ExecStop=/usr/bin/pkill -f '/usr/bin/vlc --extraintf=http --http-host=localhost --http-port=8080'
+
+    [Install]
+    WantedBy=default.target
+    EOF
+    ```
+
+4. Enable and Start the Services
+    ```bash
+    systemctl --user daemon-reload
+    systemctl --user enable vlc-http.service
+    systemctl --user start vlc-http.service
+    ```
+
+
+5. Check Service Status and Logs
+    ```bash
+    systemctl --user status vlc-http.service
+    journalctl --user -u vlc-http.service -f
+    ```
 
 ## License
 
