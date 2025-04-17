@@ -13,7 +13,6 @@ dependencies = [
     "anthropic",
     "mcp",
     "requests",
-    "python-dotenv"
 ]
 authors = [
     {name = "Piet Brömmel", email = "piet.broemmel@gmail.com"}

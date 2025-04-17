@@ -77,6 +77,8 @@ uvx mcp-client-for-testing \
         "the json config from above"
     ]
     ' \
+    --client_log_level "INFO" \
+	--server_log_level "INFO" \
     --tool_call '{"name": "show_video", "arguments": {"video_title": "David Lynch - Dune", "subtitle_language_code": "en"}}'
 ```
 
@@ -99,15 +101,23 @@ uv build
 
 ### Releasing a New Version
 
-To release a new version of the package to PyPI:
+To release a new version of the package to PyPI, create and push a new Git tag:
 
-1. Create and push a new Git tag following semantic versioning:
+1. Checkout the main branch and get the current version:
+   ```bash
+   git checkout main
+   git pull origin main
+   git describe --tags
+   ```
+
+2. Create and push a new Git tag:
    ```bash
    git tag v0.2.0
    git push origin v0.2.0
    ```
 
-The GitHub Actions workflow will automatically build and publish the package to PyPI when a new tag is pushed. The version number will be derived directly from the Git tag.
+The GitHub Actions workflow will automatically build and publish the package to PyPI when a new tag is pushed.
+The python package version number will be derived directly from the Git tag.
 
 ## Running as a Systemd Service
 

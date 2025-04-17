@@ -1,41 +1,35 @@
 import json
-import logging
 import os
 import pathlib
 import subprocess
 import sys
+import time
 
 import requests
 from anthropic import Anthropic
-from dotenv import load_dotenv
-from mcp.server.fastmcp import FastMCP
+from mcp.server.fastmcp import Context, FastMCP
 
 app = FastMCP("watch_movie")
-load_dotenv()
-
-# Configure logging
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
-logger = logging.getLogger(__name__)
 
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 if not ANTHROPIC_API_KEY:
-    logger.error("ANTHROPIC_API_KEY not found in environment variables.")
+    print("ANTHROPIC_API_KEY not found in environment variables.", file=sys.stderr)
     sys.exit(1)
 
 ROOT_VIDEO_FOLDER = os.getenv("ROOT_VIDEO_FOLDER")
 if not ROOT_VIDEO_FOLDER:
-    logger.error("ROOT_VIDEO_FOLDER not found in environment variables.")
+    print("ROOT_VIDEO_FOLDER not found in environment variables.", file=sys.stderr)
     sys.exit(1)
 
 MODEL_NAME = "claude-3-5-haiku-20241022"
 VLC_HTTP_HOST = os.getenv("VLC_HTTP_HOST", "localhost")
-VLC_HTTP_PORT = os.getenv("VLC_HTTP_PORT", "8080")
+VLC_HTTP_PORT = os.getenv("VLC_HTTP_PORT", "8081")
 VLC_HTTP_PASSWORD = os.getenv("VLC_HTTP_PASSWORD", "your_password")
 
 client = Anthropic(api_key=ANTHROPIC_API_KEY)
 
 
-def vlc_command(command, val=None, option=None, input=None):
+def vlc_command(ctx: Context, command, val=None, option=None, input=None):
     """Execute a VLC HTTP API command."""
     url = f"http://{VLC_HTTP_HOST}:{VLC_HTTP_PORT}/requests/status.xml"
     params = {"command": command}
@@ -47,34 +41,38 @@ def vlc_command(command, val=None, option=None, input=None):
     if input is not None:
         params["input"] = input
 
+    ctx.info(f"Sending VLC command: URL={url}, Params={params}")
+
     try:
         response = requests.get(url, params=params, auth=("", VLC_HTTP_PASSWORD), timeout=10)
+        ctx.info(f"VLC response status: {response.status_code}")
         response.raise_for_status()
         return True, ""
     except requests.RequestException as e:
+        ctx.error(f"VLC command failed: {e}")
         return False, f"VLC command error: {e}"
 
 
-def vlc_play_video(video_path, subtitle_id=None):
+def vlc_play_video(ctx: Context, video_path, subtitle_id=None):
     """Play a video in VLC with optional subtitle."""
-    vlc_command("volume", val=256)
+    vlc_command(ctx, "volume", val=256)
     option = None if subtitle_id is None else f"sub-track={subtitle_id}"
 
-    # Convert the OS path to a file URI
     video_uri = pathlib.Path(video_path).as_uri()
-    logger.info(f"Playing video URI: {video_uri}")  # Log the URI
 
-    success, error_message = vlc_command("in_play", input=video_uri, option=option)
+    success, error_message = vlc_command(ctx, "in_play", input=video_uri, option=option)
     if success:
-        success, error_message = vlc_command("fullscreen", val=1)
+        time.sleep(2) # wait for the video to start
+        success, error_message = vlc_command(ctx, "fullscreen", val=1)
     return success, error_message
 
 
 @app.tool()
-def get_status() -> str:
+def get_status(ctx: Context) -> str:
     """Get the current status of VLC playback."""
     try:
         status_url = f"http://{VLC_HTTP_HOST}:{VLC_HTTP_PORT}/requests/status.json"
+        ctx.info(f"Sending VLC command: URL={status_url}")
         response = requests.get(status_url, auth=("", VLC_HTTP_PASSWORD), timeout=10)
         response.raise_for_status()
         status = response.json()
@@ -91,7 +89,7 @@ def get_status() -> str:
 
 
 @app.tool()
-def seek(value: str):
+def seek(ctx: Context, value: str):
     """Seek to a specific position in the video. + or - seek relative to the current position and otherwise absolute.
 
     Allowed values are of the form:
@@ -101,24 +99,24 @@ def seek(value: str):
         +1h:2m:3s -> seek 1 hour, 2 minutes and 3 seconds forward
         30s -> seek to the 30th second
     """
-    success, error_message = vlc_command("seek", val=value)
+    success, error_message = vlc_command(ctx, "seek", val=value)
     return success, error_message
 
 
 @app.tool()
-def vlc_control(action: str) -> str:
+def vlc_control(ctx: Context, action: str) -> str:
     """Control VLC playback with actions: play, pause, stop."""
     result = False
     message = ""
 
     if action == "play":
-        result = vlc_command("pl_forceresume")
+        result = vlc_command(ctx, "pl_forceresume")
         message = "Resumed playback."
     elif action == "pause":
-        result = vlc_command("pl_forcepause")
+        result = vlc_command(ctx, "pl_forcepause")
         message = "Paused playback."
     elif action == "stop":
-        result = vlc_command("pl_stop")
+        result = vlc_command(ctx, "pl_stop")
         message = "Stopped playback."
     else:
         message = f"Unknown action: {action}. Use: play, pause, stop."
@@ -159,7 +157,7 @@ def get_available_subtitles(video_path) -> str:
 
 
 @app.tool()
-def get_available_videos() -> str:
+def get_available_videos(ctx: Context) -> str:
     """Display the video with the subtitle"""
     videos_paths = get_available_videos_paths()
 
@@ -169,6 +167,7 @@ def get_available_videos() -> str:
         "and like this for series for example: - <director> - <title> (Season 1-3)\n"
         f"The available movies are:\n{videos_paths}"
     )
+    ctx.info(f"Getting available videos using an LLM from {len(videos_paths)} video paths.")
 
     message = client.messages.create(
         model=MODEL_NAME,
@@ -180,7 +179,7 @@ def get_available_videos() -> str:
 
 
 @app.tool()
-def show_video(video_title: str, subtitle_language_code: str = "") -> str:
+def show_video(ctx: Context, video_title: str, subtitle_language_code: str = "") -> str:
     """Show the video using the the video title and the subtitle language code. If the subtitle language code is an empty string, the video will play with no subtitle."""
     videos_paths = get_available_videos_paths()
     prompt = (
@@ -189,6 +188,7 @@ def show_video(video_title: str, subtitle_language_code: str = "") -> str:
         f"Based on this list, which path best matches the title '{video_title}'?"
         f"Please respond only with the full path of the best match, or 'None' if there's no good match."
     )
+    ctx.info(f"Getting the best matching video path for '{video_title}' using an LLM.")
 
     message = client.messages.create(
         model=MODEL_NAME,
@@ -203,7 +203,7 @@ def show_video(video_title: str, subtitle_language_code: str = "") -> str:
         return f"No matching video found for '{video_title}'."
 
     full_video_path = os.path.join(ROOT_VIDEO_FOLDER, relative_video_path)
-    logger.info(f"Full video path:\n{full_video_path}")
+    ctx.info(f"Full video path:\n{full_video_path}")
 
     if not os.path.exists(full_video_path):
         return f"The file {full_video_path} does not exist."
@@ -225,7 +225,7 @@ def show_video(video_title: str, subtitle_language_code: str = "") -> str:
                 f"found for '{video_title}'. These are the available subtitles: {subtitle_str}"
             )
 
-    success, error_message = vlc_play_video(full_video_path, subtitle_id)
+    success, error_message = vlc_play_video(ctx, full_video_path, subtitle_id)
     if success:
         return "The video should now play."
     else:

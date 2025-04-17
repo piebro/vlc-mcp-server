@@ -534,7 +534,6 @@ source = { editable = "." }
 dependencies = [
     { name = "anthropic" },
     { name = "mcp" },
-    { name = "python-dotenv" },
     { name = "requests" },
     { name = "ruff" },
 ]
@@ -543,7 +542,6 @@ dependencies = [
 requires-dist = [
     { name = "anthropic" },
     { name = "mcp" },
-    { name = "python-dotenv" },
     { name = "requests" },
     { name = "ruff" },
 ]
