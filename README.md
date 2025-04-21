@@ -1,6 +1,6 @@
 # VLC MCP Server
 
-An MCP (Model Contex Protocol) Server to play and control movies using VLC.
+An MCP (Model Context Protocol) Server to play and control movies using VLC.
 I use this MCP server together with my [signal-mcp-client](https://github.com/piebro/signal-mcp-client) on an old laptop connected to my beamer.
 This way I can play a movie from my laptop by sending a signal message.
 
