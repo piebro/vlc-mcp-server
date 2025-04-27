@@ -4,8 +4,6 @@ An MCP (Model Context Protocol) Server to play and control movies using VLC.
 I use this MCP server together with my [signal-mcp-client](https://github.com/piebro/signal-mcp-client) on an old laptop connected to my beamer.
 This way I can play a movie from my laptop by sending a signal message.
 
-The Anthropic API key is used to use claude-haiku to summarize all existing videos in your video folder.
-
 ## Usage
 
 This installation is for Linux systems running Ubuntu or a similar Debian-based system like Raspberry Pi OS.
@@ -32,7 +30,6 @@ Feel free to create a pull request if you get it working on another system.
             "vlc-mcp-server"
         ],
         "env": {
-            "ANTHROPIC_API_KEY": "your-key",
             "ROOT_VIDEO_FOLDER": "path/to/your/video/folder",
             "VLC_HTTP_HOST": "localhost",
             "VLC_HTTP_PORT": "8081",
