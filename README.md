@@ -8,7 +8,7 @@ This way I can play a movie by sending a signal message.
 An example of how to use it is shown in the screenshot below.
 
 <p align="center">
-<img src="assets/vlc_chat_screenshot.png" width="40%" style="padding: 1% 1% 1% 1%">
+<img src="https://raw.githubusercontent.com/piebro/vlc-mcp-server/main/assets/vlc_chat_screenshot.png" width="40%" style="padding: 1% 1% 1% 1%">
 </p>
 
 ## Usage
