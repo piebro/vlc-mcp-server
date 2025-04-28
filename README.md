@@ -3,6 +3,11 @@
 An MCP (Model Context Protocol) Server to play and control movies using VLC.
 I use this MCP server together with my [signal-mcp-client](https://github.com/piebro/signal-mcp-client) on an old laptop connected to my beamer.
 This way I can play a movie from my laptop by sending a signal message.
+An example of how to use it is shown in the screenshot below.
+
+<p align="center">
+<img src="assets/vlc_chat_screenshot.png" width="40%" style="padding: 1% 1% 1% 1%">
+</p>
 
 ## Usage
 
@@ -21,7 +26,7 @@ Feel free to create a pull request if you get it working on another system.
     export DISPLAY=:0 # needed when running it remotely on a server
     vlc --extraintf=http --http-host=localhost --http-port=8081 --http-password=your_password
     ```
-3. Add the server to the MCP config file of your client.
+3. Add the server to the MCP config file of your client (like [signal-mcp-client](https://github.com/piebro/signal-mcp-client) or [awesome-mcp-clients](https://github.com/punkpeye/awesome-mcp-clients))
     ```json
     {
         "name": "vlc-mcp-server",
