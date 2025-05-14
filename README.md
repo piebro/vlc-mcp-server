@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/piebro-vlc-mcp-server-badge.png)](https://mseep.ai/app/piebro-vlc-mcp-server)
+
 # VLC MCP Server
 
 An MCP (Model Context Protocol) Server to play and control movies using the VLC media player.
