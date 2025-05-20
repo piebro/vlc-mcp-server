@@ -21,6 +21,7 @@ VLC_HTTP_HOST = os.getenv("VLC_HTTP_HOST", "localhost")
 VLC_HTTP_PORT = os.getenv("VLC_HTTP_PORT", "8081")
 VLC_HTTP_PASSWORD = os.getenv("VLC_HTTP_PASSWORD", "your_password")
 
+
 async def vlc_command(ctx: Context, command, val=None, option=None, input=None):
     """Execute a VLC HTTP API command."""
     url = f"http://{VLC_HTTP_HOST}:{VLC_HTTP_PORT}/requests/status.xml"
@@ -54,7 +55,7 @@ async def vlc_play_video(ctx: Context, video_path, subtitle_id=None):
 
     success, error_message = await vlc_command(ctx, "in_play", input=video_uri, option=option)
     if success:
-        time.sleep(2) # wait for the video to start
+        time.sleep(2)  # wait for the video to start
         success, error_message = await vlc_command(ctx, "fullscreen", val=1)
     return success, error_message
 
@@ -178,7 +179,7 @@ async def show_video(ctx: Context, video_path: str, subtitle_language_code: str 
             )
             return (
                 f"No matching subtitle with the language code {subtitle_language_code} "
-                f"found for '{video_title}'. These are the available subtitles: {subtitle_str}"
+                f"found for '{video_path}'. These are the available subtitles: {subtitle_str}"
             )
 
     success, error_message = await vlc_play_video(ctx, full_video_path, subtitle_id)
