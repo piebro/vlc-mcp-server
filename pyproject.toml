@@ -4,11 +4,6 @@ dynamic = ["version"]
 description = "An MCP (Model Contex Protocol) Server to play and control movies using VLC."
 readme = "README.md"
 requires-python = ">=3.10"
-dependencies = [
-    "ruff",
-    "mcp",
-    "requests",
-]
 authors = [
     {name = "Piet Brömmel", email = "piet.broemmel@gmail.com"}
 ]
@@ -19,6 +14,16 @@ classifiers = [
     "Intended Audience :: Developers",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
+]
+dependencies = [
+    "mcp",
+    "requests",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff",
+    "pre-commit",
 ]
 
 [project.scripts]

@@ -70,9 +70,18 @@ Contributions to this project are welcome. Feel free to report bugs, suggest ide
 
 ## Development
 
+Clone repo and install dependencies:
+
+```bash
+git clone https://github.com/piebro/vlc-mcp-server.git
+uv venv
+uv sync --extra dev
+uv run pre-commit install
+```
+
 ### Testing
 
-Clone the repo and use [mcp-client-for-testing](https://github.com/piebro/mcp-client-for-testing) to test the tools of the server.
+Use [mcp-client-for-testing](https://github.com/piebro/mcp-client-for-testing) to test the tools of the server using the json config using the local path.
 
 ```bash
 uvx mcp-client-for-testing \
