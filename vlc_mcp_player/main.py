@@ -55,7 +55,7 @@ async def vlc_play_video(ctx: Context, video_path, subtitle_id=None):
 
     success, error_message = await vlc_command(ctx, "in_play", input=video_uri, option=option)
     if success:
-        time.sleep(2)  # wait for the video to start
+        time.sleep(4)  # wait for the video to start
         success, error_message = await vlc_command(ctx, "fullscreen", val=1)
     return success, error_message
 
@@ -98,23 +98,25 @@ async def seek(ctx: Context, value: str):
 
 @app.tool()
 async def vlc_control(ctx: Context, action: str) -> str:
-    """Control VLC playback with actions: play, pause, stop."""
-    result = False
+    """Control VLC playback with actions: play, pause, stop, fullscreen."""
+    success = False
     message = ""
+    error_message = f"Unknown action: {action}. Use: play, pause, stop, fullscreen."
 
     if action == "play":
-        result = await vlc_command(ctx, "pl_forceresume")
+        success, error_message = await vlc_command(ctx, "pl_forceresume")
         message = "Resumed playback."
     elif action == "pause":
-        result = await vlc_command(ctx, "pl_forcepause")
+        success, error_message = await vlc_command(ctx, "pl_forcepause")
         message = "Paused playback."
     elif action == "stop":
-        result = await vlc_command(ctx, "pl_stop")
+        success, error_message = await vlc_command(ctx, "pl_stop")
         message = "Stopped playback."
-    else:
-        message = f"Unknown action: {action}. Use: play, pause, stop."
-
-    return message if result else f"VLC command failed: {message}"
+    elif action == "fullscreen":
+        success, error_message = await vlc_command(ctx, "fullscreen", val=1)
+        message = "Fullscreen mode enabled."
+        
+    return message if success else f"VLC command failed: {error_message}"
 
 
 def get_available_subtitles(video_path) -> str:
