@@ -37,9 +37,7 @@ async def vlc_command(ctx: Context, command, val=None, option=None, input=None):
     await ctx.info(f"Sending VLC command: URL={url}, Params={params}")
 
     try:
-        response = requests.get(
-            url, params=params, auth=("", VLC_HTTP_PASSWORD), timeout=10
-        )
+        response = requests.get(url, params=params, auth=("", VLC_HTTP_PASSWORD), timeout=10)
         await ctx.info(f"VLC response status: {response.status_code}")
         response.raise_for_status()
         return True, ""
@@ -55,9 +53,7 @@ async def vlc_play_video(ctx: Context, video_path, subtitle_id=None):
 
     video_uri = pathlib.Path(video_path).as_uri()
 
-    success, error_message = await vlc_command(
-        ctx, "in_play", input=video_uri, option=option
-    )
+    success, error_message = await vlc_command(ctx, "in_play", input=video_uri, option=option)
     if success:
         time.sleep(4)  # wait for the video to start
         success, error_message = await vlc_command(ctx, "fullscreen", val=1)
@@ -74,12 +70,7 @@ async def get_status(ctx: Context) -> str:
         response.raise_for_status()
         status = response.json()
 
-        filename = (
-            status.get("information", {})
-            .get("category", {})
-            .get("meta", {})
-            .get("filename", "unknown")
-        )
+        filename = status.get("information", {}).get("category", {}).get("meta", {}).get("filename", "unknown")
 
         message = (
             f"Status: {status.get('state', 'unknown')}, time: {status.get('time', 0)}/"
@@ -246,9 +237,7 @@ def get_available_videos(ctx: Context) -> str:
 
 
 @app.tool()
-async def show_video(
-    ctx: Context, video_path: str, subtitle_language_code: str = ""
-) -> str:
+async def show_video(ctx: Context, video_path: str, subtitle_language_code: str = "") -> str:
     """Show the video using the the video path and the subtitle language code. If the subtitle language code is an empty string, the video will play with no subtitle."""
     full_video_path = os.path.join(ROOT_VIDEO_FOLDER, video_path)
     await ctx.info(f"Full video path:\n{full_video_path}")
@@ -266,10 +255,7 @@ async def show_video(
 
         if subtitle_id is None:
             subtitle_str = ", ".join(
-                [
-                    f"{subtitle_info['language']} - {subtitle_info['title']}"
-                    for subtitle_info in subtitle_list
-                ]
+                [f"{subtitle_info['language']} - {subtitle_info['title']}" for subtitle_info in subtitle_list]
             )
             return (
                 f"No matching subtitle with the language code {subtitle_language_code} "
